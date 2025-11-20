@@ -1,0 +1,51 @@
+_BASE_: ./base.yaml
+task: varnet_recon
+exp_name: varnet_kits_3-cascade_ft_fresh_with-80x
+exp_dir: /global/homes/p/peterwg/pscratch/aujasvit/multires-ct/cvpr/cvpr_results/varnet_kits/varnet_kits_3-cascade_ft_fresh_with-80x
+trainer:
+  max_epochs: 100
+model:
+  name: VarnetReconstructor
+  num_projections: 720
+  sampler:
+    name: VarnetSparseCTSampler
+    accn_rate: [10, 20, 40, 80]
+  val_sampler:
+    name: VarnetSparseCTSampler
+    accn_rate: [80]
+  sino_reconstructor:
+    name: SinoCircularUDNORFFTReconstructor
+    in_chans: 1
+    out_chans: 1
+    chans: 32
+    num_pool_layers: 4
+    drop_prob: 0.0
+    radius_cutoff: 0.02
+    in_shape: [256, 256]
+    kernel_shape: [6, 7]
+    basis_type: "piecewise_linear"
+    pad_size: 15
+  image_reconstructor:
+    name: ImageNOVarnetReconstructor
+    num_cascades: 3
+    in_chans: 1
+    out_chans: 1
+    chans: 32
+    num_pool_layers: 4
+    drop_prob: 0.0
+    radius_cutoff: 0.02
+    in_shape: [256, 256]
+    kernel_shape: [6, 7]
+    basis_type: "piecewise_linear"
+train_loss:
+  name: MSELoss
+val_test_loss:
+  name: MSELoss
+data_module:
+  name: KitsLMDBDataModule
+  shape: [256, 256]
+  batch_size: 8
+  data_dir: /global/homes/p/peterwg/pscratch/aujasvit/multires-ct/dataset/C4KS/lmdb
+radon_transform:
+  name: KitsRadonTransform
+  num_projections: 720

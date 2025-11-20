@@ -1,0 +1,42 @@
+_BASE_: ./base.yaml
+task: ct_recon
+exp_name: cto_ks_3_4_temp
+exp_dir: /global/homes/p/peterwg/pscratch/aujasvit/multires-ct/cvpr/cvpr_results_test/CTO/cto_ks_3_4
+lightning_module:
+  name: CTLightningModule
+model:
+  name: CTO
+  num_projections: 720
+  sampler:
+    name: MultiresSparseCTSampler
+    accn_rate: [2, 5, 12, 20, 30]
+  val_sampler:
+    name: SparseCTSamplerKeepDim
+    accn_rate: 30
+  sino_reconstructor:
+    name: SinoCircularUDNORFFTReconstructor
+    in_chans: 1
+    out_chans: 1
+    chans: 32
+    num_pool_layers: 4
+    drop_prob: 0.0
+    radius_cutoff: 0.02
+    in_shape: [512, 512]
+    kernel_shape: [3, 4]
+    basis_type: "piecewise_linear"
+    pad_size: 15
+  image_reconstructor:
+    name: ImageUDNOReconstructor
+    in_chans: 1
+    out_chans: 1
+    chans: 32
+    num_pool_layers: 4
+    drop_prob: 0.0
+    radius_cutoff: 0.02
+    in_shape: [512, 512]
+    kernel_shape: [3, 4]
+    basis_type: "piecewise_linear"
+train_loss:
+  name: MSELoss
+val_test_loss:
+  name: MSELoss

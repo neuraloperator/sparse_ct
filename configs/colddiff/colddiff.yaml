@@ -1,0 +1,29 @@
+_BASE_: ./base.yaml
+task: ct_recon
+exp_name: cold_diffusion
+exp_dir: /path/to/results
+model:
+  name: ColdDiffusion
+  num_projections: 720
+  sampler:
+    name: MultiresSparseCTSampler
+    accn_rate: [2, 5, 12, 20, 30]
+  sino_reconstructor:
+    name: IdentityReconstructor
+  image_reconstructor:
+    name: ColdDiffusionReconstructor
+    opt:
+      net_checkpath: /global/homes/p/peterwg/pscratch/aujasvit/multires-ct/cvpr/checkpoints/CvG-Diff-net-colddiff_best_epoch.pkl
+      num_views: 36
+      budget_ratio: 2
+      refine_budget: 2
+      time_back_ssim_threshold: 0.98
+      unet_dim: 128
+    net:
+      name: ColdDiffusion
+      num_full_views: 720
+
+train_loss:
+  name: MSELoss
+val_test_loss:
+  name: MSELoss

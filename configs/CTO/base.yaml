@@ -1,0 +1,27 @@
+exp_name: equispaced_sparse_ct
+procedure:
+  name: TrainValTest
+lightning_module:
+  name: CTLightningModule
+task: sino_recon
+trainer:
+  max_epochs: 50
+lr: 0.05
+patience: 10
+logger:
+  project: sparse-ct-new
+data_module:
+  name: KitsLMDBDataModule
+  shape: [512, 512]
+  batch_size: 8
+  data_dir: /global/homes/p/peterwg/pscratch/aujasvit/multires-ct/dataset/C4KS/lmdb
+model:
+  name: TBD
+  sampler:
+    name: TBD
+  reconstructor:
+    name: TBD
+train_loss:
+  name: PSNRLoss
+val_test_loss:
+  name: PSNRLoss

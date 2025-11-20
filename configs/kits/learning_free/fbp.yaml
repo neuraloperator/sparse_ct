@@ -1,0 +1,22 @@
+_BASE_: ./base.yaml
+task: ct_recon
+exp_name: fbp_kits
+lightning_module:
+  name: CTLightningModule
+model:
+  name: CTO
+  num_projections: 720
+  sampler:
+    name: MultiresSparseCTSampler
+    accn_rate: [10, 20, 40]
+  val_sampler:
+    name: SparseCTSamplerKeepDim
+    accn_rate: 30
+  sino_reconstructor:
+    name: IdentityReconstructor
+  image_reconstructor:
+    name: IdentityReconstructor
+train_loss:
+  name: MSELoss
+val_test_loss:
+  name: MSELoss

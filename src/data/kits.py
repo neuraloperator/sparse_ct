@@ -121,7 +121,6 @@ class KitsDataModule(BaseDataModule):
         self.test_dataset = KitsDataset(self.data_dir / "test")
 
 
-# def generate_lmdb_dataset(root_dir="/global/homes/p/peterwg/pscratch/datasets/C4KC-KiTS-NBIA-manifest/C4KC-KiTS", num_patients=50):
 
 #     def decide_split(dataset_path="dataset/C4KS/", num_patients=10):
 #         np.random.seed(42)
@@ -294,7 +293,7 @@ from tqdm import tqdm
 
 
 def generate_h5_dataset(
-    root_dir: str = "/global/homes/p/peterwg/pscratch/datasets/C4KC-KiTS-organized",
+    root_dir: str,
     num_patients: int = 210,
     num_train: int = 170,
     out_root: str = "dataset/C4KS/h5",
@@ -533,7 +532,6 @@ def generate_h5_dataset(
 
 
 if __name__ == "__main__":
-    # generate_lmdb_dataset(root_dir="/global/homes/p/peterwg/pscratch/datasets/C4KC-KiTS-NBIA-manifest/C4KC-KiTS")
     # print("Dataset generation completed.")
     generate_h5_dataset()
     print("HDF5 dataset generation completed.")

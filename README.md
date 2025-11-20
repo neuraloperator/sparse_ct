@@ -1,4 +1,4 @@
-# CT Reconstruction Codebase
+# Resolution-Independent Neural Operators for Multi-Rate Sparse-View CT
 
 ## Installation
 

@@ -1,8 +1,6 @@
-from .ct_lightning_module import CTLightningModule
-from .train_val_test import TrainValTest
-from .test import Test
+from .train_val import TrainVal
 from .varnet_lightning_module import VarnetLightningModule
-from .multires_varnet_lightning_module import MultiresVarnetLightningModule
+from .test import Test
 # from .cross_val import CrossValidation
 # from .test import Test
 
@@ -15,14 +13,7 @@ from .multires_varnet_lightning_module import MultiresVarnetLightningModule
 # ]
 
 __all__ = [
-    "CTLightningModule",
-    "TrainValTest",
-    "SinoLightningModule",
+    "TrainVal",
     "Test",
-    "SinoCombinedLossLightningModule",
-    "SinoCombinedLossJacobianDescentLightningModule",
-    "SinoCombinedLossAltOptLightningModule",
-    "CTCombinedLossJacobianDescentLightningModule",
     "VarnetLightningModule",
-    "MultiresVarnetLightningModule",
 ]

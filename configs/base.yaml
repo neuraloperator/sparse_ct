@@ -1,0 +1,17 @@
+exp_name: equispaced_sparse_ct
+trainer:
+  max_epochs: 50
+  lr: 0.001
+  num_devices: 4
+logger:
+  project: sparse-ct-new
+model:
+  name: TBD
+  sampler:
+    name: TBD
+  reconstructor:
+    name: TBD
+train_loss:
+  name: TBD
+val_test_loss:
+  name: TBD

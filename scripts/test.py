@@ -1,6 +1,6 @@
 import argparse
 import os
-from src.config import Configurator
+from src.config import TestConfigurator
 import wandb
 from pytorch_lightning import seed_everything
 
@@ -21,30 +21,16 @@ if __name__ == '__main__':
 
     seed_everything(42, workers=True)
 
-    local_rank = int(os.environ.get("LOCAL_RANK", 0))
-    # local_rank = int(os.environ.get("SLURM_PROCID"))
-    print(f"local_rank: {local_rank}", flush=True)
-
     if args.fix is None:
         args.fix = []
 
     # Initialize config from YAML + CLI overrides
-    cc = Configurator(args)
+    cc = TestConfigurator(args)
 
     # Create experiment directory and save final config
     os.makedirs(cc.cfg.exp_dir, exist_ok=True)
     with open(f'{cc.cfg.exp_dir}/config.yaml', 'w') as f:
         f.write(str(cc.cfg))
 
-    # Initialize W&B
-    wandb_mode = "online" if local_rank == 0 else "disabled"
-    # wandb_mode = "disabled"
-    wandb.init(mode=wandb_mode)
-
-    # Set W&B run name from config (only on rank 0)
-    if local_rank == 0 and hasattr(cc.cfg, "exp_name"):
-        wandb.run.name = cc.cfg.exp_name
-
-    # Build experiment and run
     exp, model, data_module = cc.init_all()
     exp(model, data_module)

@@ -1,8 +1,8 @@
 import torch
 import pytorch_lightning as pl
-from src.utils.radon_transforms import radon, iradon
 from src.losses import PSNR, SSIM
 from pytorch_lightning.loggers import WandbLogger
+from src.utils.compute_metrics import compute_metrics
 
 
 
@@ -140,40 +140,35 @@ class VarnetLightningModule(pl.LightningModule):
 
 
     def test_single_rate(self, batch, batch_idx):
-        """Accumulate stats for the single active rate (taken from self.test_sampler)."""
-        idx = 0  # single slot
+            idx = 0  # single slot
 
-        image = batch.image
-        # sino, theta = radon(image, num_projections=self.cfg.model.num_projections)
-        sino, theta = self.radon_transform.radon(image)
-        sampled_sino, sampled_theta, sampled_indices = self.sampler(sino, theta)
-        sino_recon = self.sino_reconstructor(sampled_sino)
-        # raw_image = iradon(sino_recon, sampled_theta)
-        raw_image = self.radon_transform.iradon(sino_recon)
-        
-        sino_recon = self.image_reconstructor(
-            sino_recon,
-            sampled_sino,
-            sampled_indices,
-            sampled_theta,
-            self.radon_transform
-        )
-        image_recon = self.radon_transform.iradon(sino_recon)
+            image = batch.image
+            sino, theta = self.radon_transform.radon(image)
+            sampled_sino, sampled_theta, sampled_indices = self.test_sampler(sino, theta)
+            sino_recon = self.sino_reconstructor(sampled_sino)
+            raw_image = self.radon_transform.iradon(sino_recon)
+            sino_recon = self.image_reconstructor(
+                sino_recon,
+                sampled_sino,
+                sampled_indices,
+                sampled_theta,
+                self.radon_transform
+            )
+            image_recon = self.radon_transform.iradon(sino_recon)
+            
+            
+            zero_rmse, zero_psnr, zero_ssim = compute_metrics(raw_image, image)
+            rmse, psnr, ssim = compute_metrics(image_recon, image)
 
-
-        _, test_mse = self._calc_loss_by_task(image_recon, image)
-        zero_psnr = self.psnr(raw_image, image)
-        psnr = self.psnr(image_recon, image)
-        mean_ssim = self.ssim(image_recon, image).mean()
-
-        self._sum_zero_psnr[idx]    += zero_psnr
-        self._sum_sq_zero_psnr[idx] += (zero_psnr ** 2)
-        self._sum_psnr[idx]         += psnr
-        self._sum_sq_psnr[idx]      += (psnr ** 2)
-        self._sum_ssim[idx]         += mean_ssim
-        self._sum_sq_ssim[idx]      += (mean_ssim ** 2)
-        self._sum_mse[idx]          += test_mse
-        self._test_count[idx]       += image.shape[0]
+            self._sum_zero_psnr[idx]    += zero_psnr
+            self._sum_sq_zero_psnr[idx] += (zero_psnr ** 2)
+            self._sum_psnr[idx]         += psnr
+            self._sum_sq_psnr[idx]      += (psnr ** 2)
+            self._sum_ssim[idx]         += ssim
+            self._sum_sq_ssim[idx]      += (ssim ** 2)
+            self._sum_rmse[idx]         += rmse
+            self._sum_sq_rmse[idx]      += (rmse ** 2)
+            self._test_count[idx]       += image.shape[0]
 
 
     def test_step(self, batch, batch_idx):
@@ -256,5 +251,5 @@ class VarnetLightningModule(pl.LightningModule):
         }
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.cfg.trainer.lr)
         return optimizer

@@ -2,7 +2,7 @@ import importlib
 import pathlib
 import torch
 from fvcore.common.config import CfgNode as CN
-from src.engines import TrainValTest, CTLightningModule, VarnetLightningModule, MultiresVarnetLightningModule
+from src.engines import TrainVal, VarnetLightningModule
 import re
 from torch.serialization import safe_globals
 from fvcore.common.config import CfgNode
@@ -97,8 +97,8 @@ class Configurator:
         return self.init_params_without_name("src.radon_transforms", self.cfg.radon_transform)
 
     def _init_exp(self):
-        if self.cfg.procedure.name == 'TrainValTest':
-            exp = TrainValTest(self.cfg)
+        if self.cfg.procedure.name == 'TrainVal':
+            exp = TrainVal(self.cfg)
         else:
             raise NotImplementedError(
                 f"Procedure {self.cfg.procedure.name} is not implemented.")
@@ -169,8 +169,7 @@ class Configurator:
             sino_reconstructor = self._init_sino_reconstructor()
             image_reconstructor = self._init_image_reconstructor()
 
-            if(self.cfg.task == "ct_recon"):
-                model = CTLightningModule(
+            model = VarnetLightningModule(
                     cfg=self.cfg,
                     sampler=sampler,
                     sino_reconstructor=sino_reconstructor,
@@ -179,32 +178,6 @@ class Configurator:
                     train_loss=train_loss,
                     val_test_loss=val_test_loss
                 )
-            elif(self.cfg.task == "varnet_recon"):
-                model = VarnetLightningModule(
-                    cfg=self.cfg,
-                    sampler=sampler,
-                    sino_reconstructor=sino_reconstructor,
-                    image_reconstructor=image_reconstructor,
-                    val_sampler = val_sampler,
-                    train_loss=train_loss,
-                    val_test_loss=val_test_loss
-                )
-            elif(self.cfg.task == "multires_varnet_recon"):
-                model = MultiresVarnetLightningModule(
-                    cfg=self.cfg,
-                    sampler=sampler,
-                    sino_reconstructor=sino_reconstructor,
-                    image_reconstructor=image_reconstructor,
-                    val_sampler = val_sampler,
-                    train_loss=train_loss,
-                    val_test_loss=val_test_loss
-                )
-            else:
-                raise NotImplementedError(
-                    f"Task {self.cfg.task} is not implemented.")
-        else:
-            raise NotImplementedError(
-                f"Procedure {self.cfg.procedure.name} is not implemented.")
 
         return model
 

@@ -6,7 +6,7 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 import pathlib
 import re
 
-class TrainValTest:
+class TrainVal:
     def __init__(self, cfg) -> None:
         self.cfg = cfg
         
@@ -52,20 +52,20 @@ class TrainValTest:
         # )
 
         additional_callbacks = []
-        logger = WandbLogger(**dict(self.cfg.logger), entity='aujasvitd')
+        logger = WandbLogger(**dict(self.cfg.logger)) if self.cfg.get('logger') else None
 
         # ---- TRAIN/VAL on multiple GPUs ----
 
         train_trainer = pl.Trainer(
             accelerator='gpu',
-            devices=4,                     # your multi-GPU training
+            devices=self.cfg.trainer.num_devices,                     # your multi-GPU training
             logger=logger,
             callbacks=[
                 checkpoint_callback,
                 # early_stop_callback,
                 *additional_callbacks
             ],
-            **dict(self.cfg.trainer)
+            max_epochs = self.cfg.trainer.max_epochs
         )
         
         shouldResume = getattr(self.cfg, 'resume', False)

@@ -1,7 +1,11 @@
 # Resolution-Independent Neural Operators for Multi-Rate Sparse-View CT
 
 ## Installation
-
+- Install required python packages using the following command
+```
+python -m pip install -r requirements.txt
+```
+The code was tested using a conda environment running Python 3.11 on a Linux server.
 ### torch-radon
 - Download **torch-radon** from https://github.com/matteo-ronchetti/torch-radon
 ```
@@ -17,9 +21,9 @@ patch -p1 < path/to/cto_cvpr/torch-radon_fix/torch-radon_fix.patch
 python setup.py install
 ```
 
-### neuraloperator
+<!-- ### neuraloperator
 - Install the **neuraloperator** library by following the instructions given at
-  https://github.com/neuraloperator/neuraloperator
+  https://github.com/neuraloperator/neuraloperator -->
 
 ## Datasets
 

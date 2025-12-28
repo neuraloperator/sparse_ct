@@ -19,7 +19,7 @@ from tqdm import tqdm
 # USER CONFIG (edit these 3 paths)
 # =========================================================
 RAW_DICOM_DIR = Path("C4KC-KiTS")                 # original downloaded dataset root
-ORGANIZED_DIR = Path("C4KC-KiTS-organized")       # intermediate patient-wise hierarchy
+INTER_ORGANIZED_DIR = Path("C4KC-KiTS-organized")       # intermediate patient-wise hierarchy
 # =========================================================
 
 # Fixed requirement
@@ -464,7 +464,7 @@ def main():
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--raw", type=str, default=str(RAW_DICOM_DIR))
-    ap.add_argument("--organized", type=str, default=str(ORGANIZED_DIR))
+    ap.add_argument("--organized", type=str, default=str(INTER_ORGANIZED_DIR))
     ap.add_argument("--h5", type=str, default=str(H5_DIR))
 
     ap.add_argument("--skip_organize", action="store_true")

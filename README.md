@@ -31,17 +31,18 @@ python setup.py install
 - Download original **AAPM** dataset from https://aapm.app.box.com/s/eaw4jddb53keg1bptavvvd1sf4x3pe9h/folder/144226105715
 - Navigate to `Dataset_dir_to_downloaded_AAMP16/Patient_Data/Training_Image_Data/1mm B30`
 - Unzip the `FD_1mm.zip` to `full_1mm/`
-- Update `Line 200` in `cto_cvpr/src/data/aapm.py` with the updated dataset path
+- Update `Line 5` at the top of `cto_cvpr/src/data/preprocess_aapm.py` with the updated dataset path
 - Run the preprocessing with the following command. By default, the processed data will be saved at `cto_cvpr/data/aapm16`
 ```
-python src/data/aapm.py
+python src/data/preprocess_aapm.py
 ```
 ### C4KC-KiTS Dataset
 - Download the **C4KC-KiTS** kidney CT dataset:  
   https://www.cancerimagingarchive.net/collection/c4kc-kits/
-- Run the preprocessing with the following command:
+- Update `Lines 21-22` at the top of `cto_cvpr/src/data/preprocess_aapm.py` with the original dataset path `RAW_DICOM_DIR` and the desired intermediate dataset path `INTER_ORGANIZED_DIR` where data will be stored patient wise. 
+- Run the preprocessing with the following command. By default, the processed data will be saved at `cto_cvpr/data/kits`
 ```
-python src/data/kits.py
+python src/data/preprocess_kits.py
 ```
 <!-- ## Preprocessing
 

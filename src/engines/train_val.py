@@ -52,7 +52,15 @@ class TrainVal:
         # )
 
         additional_callbacks = []
-        logger = WandbLogger(**dict(self.cfg.logger)) if self.cfg.get('logger') else None
+        cfg_logger = self.cfg.get("logger")
+
+        if cfg_logger is None:
+            logger = None
+        elif isinstance(cfg_logger, dict) and len(cfg_logger) <= 1:
+            logger = None
+        else:
+            logger = WandbLogger(**dict(cfg_logger))
+
 
         # ---- TRAIN/VAL on multiple GPUs ----
 

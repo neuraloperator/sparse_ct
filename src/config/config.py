@@ -165,7 +165,7 @@ class Configurator:
         train_loss = self._init_train_loss()
         val_test_loss = self._init_val_test_loss()
 
-        if self.cfg.procedure.name == 'TrainValTest':
+        if self.cfg.procedure.name == 'TrainVal':
             sino_reconstructor = self._init_sino_reconstructor()
             image_reconstructor = self._init_image_reconstructor()
 
@@ -227,5 +227,5 @@ class TestConfigurator(Configurator):
         exp = Test(self.cfg)
 
         data_module = self._init_data_module()
-
+        model.radon_transform = self._init_radon_transform()
         return exp, model, data_module

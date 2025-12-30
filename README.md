@@ -3,9 +3,12 @@
 ## Installation
 - Install required python packages using the following command
 ```
+conda create --name cto_env python=3.11
+conda activate cto_env
 python -m pip install -r requirements.txt
+pip install --no-build-isolation torch-harmonics
 ```
-The code was tested using a conda environment running Python 3.11 on a Linux server.
+The code was tested using a conda environment running Python 3.11 on a Linux computer.
 ### torch-radon
 - Download **torch-radon** from https://github.com/matteo-ronchetti/torch-radon
 ```
@@ -55,13 +58,24 @@ python src/data/kits.py
 
 ## Running Experiments
 
-To train on the AAPM dataset, use the train.py script with the config file `configs/aapm.yaml`. To use wandb logging, update the logger section in the yaml file. Delete that header to not use any logging. By default, the trained model will get saved under `models/` directory.
+Before training/testing, some commands that may need to be run before running the final script include the following. These are system dependent, and you may have to modify them depending on your system configuration/ whether you are using a job scheduler like SLURM.
+
+```
+source ~/.bashrc
+cd PATH/TO/CTO_CVPR
+export PYTHONPATH="$(pwd)"
+export CUDA_VISIBLE_DEVICES=0,1,2,3 
+export WANDB_API_KEY=your_api_key
+```
+Also, set the number of GPUs being used in `configs/base.yaml`.
+
+To train on the AAPM dataset, use the train.py script with the config file `configs/aapm.yaml`. To use wandb logging, update the logger section in the yaml file `configs/base.yaml`. Delete that header to not use any logging. By default, the trained model will get saved under `models/` directory.
 
 ```
 python scripts/train.py -c configs/aapm.yaml
 ```
 
-Similarly, to test the trained model, you can run the following command. If logging is enabled, it will also create a wandb run with a table containing all metrics across different sampling rates.
+Similarly, to test the trained model, you can run the following command. Results are printed and saved in the `results/` directory.
 ```
 python scripts/test.py -c configs/aapm.yaml
 ```

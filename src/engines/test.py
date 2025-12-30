@@ -1,24 +1,40 @@
 import os
-from typing import Any, Dict, Optional
-import pytorch_lightning as pl
-from pytorch_lightning.loggers import WandbLogger
-import pandas as pd
-from pytorch_lightning.callbacks import ModelCheckpoint
+import json
 import pathlib
+import re
+import math
+from datetime import datetime
+from typing import Any, Dict
+
+import pytorch_lightning as pl
 import torch
 import numpy as np
-import math
-import re
-from src.samplers import VarnetSparseCTSampler
-import wandb
+
+# If you still need this elsewhere in the file, keep it; otherwise remove.
+# from src.samplers import VarnetSparseCTSampler
+
 
 class Test:
     def __init__(self, cfg) -> None:
         self.cfg = cfg
-        
+
+    # ---------- small cfg helpers ----------
+    def _cfg_get(self, key: str, default=None):
+        # works for dict-like (OmegaConf supports .get) and attribute-style cfgs
+        if hasattr(self.cfg, "get"):
+            v = self.cfg.get(key, default)
+            return default if v is None else v
+        return getattr(self.cfg, key, default)
+
+    def _cfg_exp_name(self) -> str:
+        return str(self._cfg_get("exp_name", "experiment"))
+
+    # ---------- checkpoint helper ----------
     def _init_ckpt(self):
-        # gather all .ckpt files that start with "best"
-        exp_dir = self.cfg.init_exp_dir
+        exp_dir = self._cfg_get("init_exp_dir")
+        if exp_dir is None:
+            raise ValueError("cfg.init_exp_dir is missing")
+
         ckpt_paths = [
             p for p in pathlib.Path(exp_dir).iterdir()
             if p.suffix == ".ckpt" and p.stem.startswith("best")
@@ -27,158 +43,17 @@ class Test:
             raise FileNotFoundError(f"No checkpoint files in {exp_dir!r}")
 
         def version(p: pathlib.Path) -> int:
-            # match "best-vN" or just "best"
             m = re.fullmatch(r"best(?:-v(\d+))?", p.stem)
             return int(m.group(1)) if m and m.group(1) else 0
 
         latest = max(ckpt_paths, key=version)
         if len(ckpt_paths) > 1:
-            print(
-                f"Warning: multiple checkpoints found, using {latest.name!r}")
+            print(f"Warning: multiple checkpoints found, using {latest.name!r}")
         print("Successfully loaded checkpoint from", latest.name)
         return latest
-    
 
-    def log_metrics(self, results: Dict[Any, Dict[str, Any]], cc, run_id: Optional[str] = None) -> None:
-        """
-        Log CT test metrics to Weights & Biases.
-
-        Args:
-            results: Mapping {acc_rate: metrics}, where each 'metrics' is:
-                {
-                    "mean_zero_psnr": float|tensor,
-                    "mean_psnr":      float|tensor,
-                    "mean_ssim":      float|tensor,
-                    "mean_mse":       float|tensor,
-                    "rmse":           float|tensor,
-                    "std_zero_psnr":  float|tensor,
-                    "std_psnr":       float|tensor,
-                    "std_ssim":       float|tensor,
-                    "count":          int|tensor,
-                }
-            run_id: Existing W&B run id to resume. If None, a new run is created
-                    with a placeholder name. Project is taken from WANDB_PROJECT.
-        """
-        # --- Optional torch handling (don’t hard-require torch) ---
-        
-        def _to_float(x):
-            if x is None:
-                return None
-            if isinstance(x, torch.Tensor):
-                # detach and reduce to scalar if needed
-                x = x.detach()
-                if x.numel() == 1:
-                    return float(x.item())
-                # if a tensor slipped in that isn't scalar, take mean as a safe fallback
-                return float(x.float().mean().item())
-            if isinstance(x, np.generic):
-                return float(x)  # numpy scalar
-            if isinstance(x, (int, float)):
-                return float(x)
-            # last resort: try to cast
-            try:
-                return float(x)
-            except Exception:
-                return None
-
-        # --- Normalize key types to float for sorting/lookup ---
-        norm: Dict[float, Dict[str, Any]] = {}
-        for k, v in results.items():
-            try:
-                r = float(k)
-            except Exception:
-                # try to coerce strings like "5" cleanly
-                r = float(str(k))
-            norm[r] = v
-
-        # --- Sort acceleration rates numerically ---
-        rates_sorted = sorted(norm.keys())
-        # Pretty x-axis: cast whole numbers to int, else keep float
-        xs = [int(r) if float(r).is_integer() else float(r) for r in rates_sorted]
-
-        # Helper to collect a list for a given metric over sorted rates
-        def L(metric: str):
-            vals = []
-            for r in rates_sorted:
-                vals.append(_to_float(norm[r].get(metric)))
-            return vals
-
-        # Collect series
-        zpsnr_mu = L("mean_zero_psnr")
-        zpsnr_sd = L("std_zero_psnr")
-        psnr_mu  = L("mean_psnr")
-        psnr_sd  = L("std_psnr")
-        ssim_mu  = L("mean_ssim")
-        ssim_sd  = L("std_ssim")
-        rmse_mu   = L("mean_rmse")
-        rmse_sd = L("std_rmse")
-        count    = [(_to_float(norm[r].get("count")) if norm[r].get("count") is not None else None) for r in rates_sorted]
-        # Ensure integer-like counts are ints for the table
-        count = [int(c) if c is not None and not math.isnan(c) else None for c in count]
-        print("Results are", results)
-        # --- Init or resume W&B run ---
-        # If a run is already active, reuse it; otherwise init appropriately.
-        # run = wandb.init(mode = "online", name=f"{self.cfg.exp_name}_test")  # placeholder name
-            
-        # # --- Build and log summary table ---
-        # table_cols = [
-        #     "accn_rate",
-        #     "zero_psnr_mean", "zero_psnr_std",
-        #     "psnr_mean", "psnr_std",
-        #     "ssim_mean", "ssim_std",
-        #     "rmse_mean", "rmse_std",
-        #     "count",
-        # ]
-        # tbl = wandb.Table(columns=table_cols)
-        # for i in range(len(xs)):
-        #     tbl.add_data(
-        #         xs[i],
-        #         zpsnr_mu[i], zpsnr_sd[i],
-        #         psnr_mu[i],  psnr_sd[i],
-        #         ssim_mu[i],  ssim_sd[i],
-        #         rmse_mu[i],  rmse_sd[i],
-        #         count[i],
-        #     )
-            
-        # print(tbl)
-        # run.log({"test/summary_table": tbl})
-        # print("Logged table to W&B")
-        # run.finish()
-        
-        wandb_logger = WandbLogger(
-            project="YOUR_PROJECT_NAME",
-            name=f"{self.cfg.exp_name}_test",
-            mode="online",   # same as before
-        )
-
-        # --- Build summary table ---
-        df = pd.DataFrame({
-            "accn_rate": xs,
-            "zero_psnr_mean": zpsnr_mu,
-            "zero_psnr_std": zpsnr_sd,
-            "psnr_mean": psnr_mu,
-            "psnr_std": psnr_sd,
-            "ssim_mean": ssim_mu,
-            "ssim_std": ssim_sd,
-            "rmse_mean": rmse_mu,
-            "rmse_std": rmse_sd,
-            "count": count,
-        })
-
-        # --- Log table ---
-        wandb_logger.log_table(
-            key="test/results_table",
-            dataframe=df,
-        )
-
-        print("Logged table to W&B")
-
-        # --- Finish run ---
-        wandb_logger.experiment.finish()
-        
-        
-    def _to_plain_dict(d):
-        import torch
+    # ---------- metrics extraction ----------
+    def _to_plain_dict(self, d):
         plain = {}
         for k, v in d.items():
             if isinstance(v, torch.Tensor):
@@ -186,60 +61,139 @@ class Test:
                 if v.numel() == 1:
                     plain[k] = float(v.item())
                 else:
-                    # vector valued metrics per-rate (K=1 here, but keep robust)
                     plain[k] = [float(x) for x in v.flatten().tolist()]
             else:
                 plain[k] = v
         return plain
 
+    def _pick(self, x):
+        # your metrics sometimes come as list[tensor/float] with len=1
+        if isinstance(x, list):
+            return x[0] if x else None
+        return x
 
+    # ---------- saving + printing ----------
+    def _ensure_results_dir(self) -> str:
+        out_dir = "results"
+        os.makedirs(out_dir, exist_ok=True)
+        return out_dir
+
+    def _format_pm(self, mu, sd, mu_fmt="{:.3f}", sd_fmt="{:.3f}"):
+        if mu is None or sd is None:
+            return "NA"
+        return f"{mu_fmt.format(mu)} ± {sd_fmt.format(sd)}"
+
+    def save_results(self, all_results: Dict[int, Dict[str, Any]]) -> None:
+        out_dir = self._ensure_results_dir()
+        exp_name = self._cfg_exp_name()
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # Build rows (REMOVED zero-psnr fields)
+        rows = []
+        for rate in sorted(all_results.keys()):
+            r = all_results[rate]
+            rows.append({
+                "accn_rate": rate,
+                "psnr_mean": r.get("mean_psnr"),
+                "psnr_std":  r.get("std_psnr"),
+                "ssim_mean": r.get("mean_ssim"),
+                "ssim_std":  r.get("std_ssim"),
+                "rmse_mean": r.get("mean_rmse"),
+                "rmse_std":  r.get("std_rmse"),
+                "count":     r.get("count"),
+            })
+
+        # Save CSV + JSON (no wandb)
+        csv_path = os.path.join(out_dir, f"{exp_name}_test_{ts}.csv")
+        json_path = os.path.join(out_dir, f"{exp_name}_test_{ts}.json")
+
+        try:
+            import pandas as pd
+            df = pd.DataFrame(rows)
+            df.to_csv(csv_path, index=False)
+        except Exception:
+            # Fallback if pandas isn’t available
+            import csv
+            with open(csv_path, "w", newline="") as f:
+                writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()) if rows else ["accn_rate"])
+                writer.writeheader()
+                writer.writerows(rows)
+
+        with open(json_path, "w") as f:
+            json.dump(all_results, f, indent=2)
+
+        print(f"\nSaved results:")
+        print(f"  CSV : {csv_path}")
+        print(f"  JSON: {json_path}")
+
+        # Print final summary
+        print("\nFinal test results:")
+        for rate in sorted(all_results.keys()):
+            r = all_results[rate]
+            psnr = self._format_pm(r.get("mean_psnr"), r.get("std_psnr"), "{:.3f}", "{:.3f}")
+            ssim = self._format_pm(r.get("mean_ssim"), r.get("std_ssim"), "{:.4f}", "{:.4f}")
+            rmse = self._format_pm(r.get("mean_rmse"), r.get("std_rmse"), "{:.4f}", "{:.4f}")
+            n = r.get("count")
+            print(f"  accn_rate={rate}: PSNR {psnr} | SSIM {ssim} | RMSE {rmse} | N={n}")
+
+        # Also print a compact table if pandas exists
+        try:
+            import pandas as pd
+            df = pd.DataFrame(rows)
+            # nicer formatting
+            with pd.option_context(
+                "display.max_rows", 200,
+                "display.max_columns", 200,
+                "display.width", 200,
+            ):
+                print("\nTable:")
+                print(df.to_string(index=False))
+        except Exception:
+            pass
+
+    # ---------- main ----------
     def __call__(self, model, data_module):
-
+        # edit these as needed
         accelerations = [10, 20, 40, 80]
-        sampler = VarnetSparseCTSampler([1])
-        all_results = {}
+        if isinstance(accelerations, (int, float)):
+            accelerations = [int(accelerations)]
+
+        all_results: Dict[int, Dict[str, Any]] = {}
 
         for accn_rate in accelerations:
+            accn_rate = int(accn_rate)
+
             if hasattr(model, "test_results"):
                 delattr(model, "test_results")
 
-            trainer = pl.Trainer(
-                accelerator="gpu",
-                devices=1,
-                logger=False
-            )
-            
+            trainer = pl.Trainer(accelerator="gpu", devices=1, logger=False)
             _ = trainer.test(model, datamodule=data_module)
-            
-            res = self._to_plain_dict(model.test_results)
-            
-            
-            def _pick(x):
-                if isinstance(x, list):
-                    return x[0] if x else None
-                return x
 
-            all_results[int(accn_rate)] = {
-                "mean_zero_psnr": _pick(res["mean_zero_psnr"]),
-                "mean_psnr":      _pick(res["mean_psnr"]),
-                "mean_ssim":      _pick(res["mean_ssim"]),
-                "mean_rmse":      _pick(res["mean_rmse"]),
-                "std_zero_psnr":  _pick(res["std_zero_psnr"]),
-                "std_psnr":       _pick(res["std_psnr"]),
-                "std_ssim":       _pick(res["std_ssim"]),
-                "std_rmse":       _pick(res["std_rmse"]),
-                "count":          _pick(res["count"]),
+            if not hasattr(model, "test_results"):
+                raise RuntimeError("model.test_results was not set. Check your test_step/on_test_epoch_end.")
+
+            res = self._to_plain_dict(model.test_results)
+
+            # Build per-rate dict (REMOVED zero-psnr fields)
+            all_results[accn_rate] = {
+                "mean_psnr": self._pick(res.get("mean_psnr")),
+                "std_psnr":  self._pick(res.get("std_psnr")),
+                "mean_ssim": self._pick(res.get("mean_ssim")),
+                "std_ssim":  self._pick(res.get("std_ssim")),
+                "mean_rmse": self._pick(res.get("mean_rmse")),
+                "std_rmse":  self._pick(res.get("std_rmse")),
+                "count":     self._pick(res.get("count")),
             }
-            
-            r = all_results[int(accn_rate)]
+
+            r = all_results[accn_rate]
             print(
-                f"[TEST] accn_rate = {int(accn_rate)} | "
+                f"[TEST] accn_rate = {accn_rate} | "
                 f"PSNR: {r['mean_psnr']:.3f} ± {r['std_psnr']:.3f}, "
                 f"SSIM: {r['mean_ssim']:.4f} ± {r['std_ssim']:.4f}, "
-                f"RMSE: {r['mean_rmse']:.4f} ± {r['std_rmse']:.4f}, "
-                f"Zero-PSNR: {r['mean_zero_psnr']:.3f} ± {r['std_zero_psnr']:.3f} "
+                f"RMSE: {r['mean_rmse']:.4f} ± {r['std_rmse']:.4f} "
                 f"(N={r['count']})"
             )
-        
-        if self.cfg.get("logger"):
-            self.log_metrics(all_results)
+
+        # Save + print at end
+        self.save_results(all_results)
+        return all_results

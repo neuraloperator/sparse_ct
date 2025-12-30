@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     
 
-    target_root = 'data/aapm16'
+    target_root = 'data/aapm'
     target_tag = {
         'train': 'train',
         'test':  'test'

@@ -1,7 +1,7 @@
 from typing import Literal, Tuple
 import torch
 import torch.nn as nn
-from src.networks import NormUnet
+from .unet import NormUnet
 
 class VarNetBlock(nn.Module):
     

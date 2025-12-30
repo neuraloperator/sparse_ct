@@ -1,7 +1,7 @@
-from .kits import KitsDataModule
+from .kits import KitsH5DataModule
 from .aapm import AAPMDataModule
 
 __all__ = [
-    "KitsDataModule",
+    "KitsH5DataModule",
     "AAPMDataModule",
 ]

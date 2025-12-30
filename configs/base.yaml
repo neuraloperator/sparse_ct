@@ -5,5 +5,5 @@ trainer:
   num_devices: 4
 logger:
   project: "cto_cvpr"
-  entity:: "entity_name"
+  entity: "your_entity"
   save_dir: ./wandb

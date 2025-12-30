@@ -1,2 +1,5 @@
 .vscode/
 data/
+models/
+results/
+wandb/

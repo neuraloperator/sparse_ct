@@ -30,6 +30,8 @@ python setup.py install
 
 ## Datasets
 
+The Low-dose CT **AAPM** dataset is substantially smaller than the **C4KC-KiTS Dataset**, hence easier to work with.
+
 ### AAPM Dataset
 - Download original **AAPM** dataset from https://aapm.app.box.com/s/eaw4jddb53keg1bptavvvd1sf4x3pe9h/folder/144226105715
 - Navigate to `Dataset_dir_to_downloaded_AAMP16/Patient_Data/Training_Image_Data/1mm B30`

@@ -5,5 +5,5 @@ trainer:
   num_devices: 4
 logger:
   project: "cto_cvpr"
-  entity: "your_entity"
+  entity: null   # set the WANDB_ENTITY env var, or put your wandb username/team here; null uses your logged-in default
   save_dir: ./wandb

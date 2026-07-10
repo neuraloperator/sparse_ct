@@ -59,7 +59,16 @@ class TrainVal:
         elif isinstance(cfg_logger, dict) and len(cfg_logger) <= 1:
             logger = None
         else:
-            logger = WandbLogger(**dict(cfg_logger))
+            logger_kwargs = dict(cfg_logger)
+            # Resolve the wandb entity: WANDB_ENTITY env var wins, then the
+            # config value. Treat the "your_entity" placeholder / empty as unset
+            # so wandb falls back to the logged-in default account (no edit needed).
+            entity = os.environ.get("WANDB_ENTITY") or logger_kwargs.get("entity")
+            if entity in (None, "", "your_entity"):
+                logger_kwargs.pop("entity", None)
+            else:
+                logger_kwargs["entity"] = entity
+            logger = WandbLogger(**logger_kwargs)
 
 
         # ---- TRAIN/VAL on multiple GPUs ----

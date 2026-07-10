@@ -2,7 +2,9 @@ import SimpleITK as sitk
 import os
 import numpy as np
 
-DATASET_DIR = 'Dataset_dir_to_downloaded_AAMP16/Patient_Data/Training_Image_Data/1mm B30/full_1mm/'
+# Path to the unzipped raw AAPM-2016 dataset (or set the AAPM_RAW_DIR env var).
+# Download: https://aapm.app.box.com/s/eaw4jddb53keg1bptavvvd1sf4x3pe9h/folder/144226105715
+DATASET_DIR = os.environ.get('AAPM_RAW_DIR', 'Dataset_dir_to_downloaded_AAMP16/Patient_Data/Training_Image_Data/1mm B30/full_1mm/')
 
 def ima2array(ima_path):
     return sitk.GetArrayFromImage(sitk.ReadImage(ima_path))

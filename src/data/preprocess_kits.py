@@ -18,7 +18,7 @@ from tqdm import tqdm
 # =========================================================
 # USER CONFIG (edit these 3 paths)
 # =========================================================
-RAW_DICOM_DIR = Path("C4KC-KiTS")                 # original downloaded dataset root
+RAW_DICOM_DIR = Path(os.environ.get("KITS_RAW_DIR", "C4KC-KiTS"))   # original downloaded dataset root (or set KITS_RAW_DIR)
 INTER_ORGANIZED_DIR = Path("C4KC-KiTS-organized")       # intermediate patient-wise hierarchy
 # =========================================================
 
@@ -33,7 +33,7 @@ DEFAULT_SEED_SLICES = 7737
 DEFAULT_VAL_FRACTION = 0.20
 DEFAULT_TEST_MAX_IMAGES = 10_000
 DEFAULT_ENDS_FRACTION_PER_SIDE = 0.05
-H5_DIR = Path("dataset/C4KS/h5")                  # final h5 dataset root (contains train/val/test)
+H5_DIR = Path(os.environ.get("KITS_DATA_DIR", "data/kits"))   # final h5 dataset root (train/val/test); matches configs/kits.yaml data_dir
 
 # Stage-1 behavior
 USE_HARDLINKS = True  # falls back to copy if hardlink fails (e.g., cross-filesystem)

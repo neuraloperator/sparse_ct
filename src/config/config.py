@@ -143,9 +143,11 @@ class Configurator:
         # If no init_modules in cfg, load everything (lenient)
         mods = getattr(self.cfg, 'init_modules', None)
         if mods is None:
-            model.load_state_dict(state, strict=False)
+            # strict=True so a checkpoint that doesn't match the model raises
+            # (missing/unexpected keys) instead of silently loading nothing.
+            model.load_state_dict(state, strict=True)
             print(
-                f"Loaded full checkpoint from {ckpt} (strict=False; no init_modules in cfg).")
+                f"Loaded full checkpoint from {ckpt} (strict=True; no init_modules in cfg).")
             return model
 
         # Otherwise keep your filtered init logic

@@ -1,5 +1,6 @@
 fvcore==0.1.5.post20221221
 h5py==3.14.0
+huggingface_hub==1.22.0
 lmdb==1.7.3
 matplotlib==3.10.8
 neuraloperator==2.0.0

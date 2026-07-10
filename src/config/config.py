@@ -106,17 +106,25 @@ class Configurator:
         return exp
 
     def _init_ckpt(self, exp_dir):
-        # gather all .ckpt files that start with "best"
-        ckpt_paths = [
-            p for p in pathlib.Path(exp_dir).iterdir()
-            if p.suffix == ".ckpt" and p.stem.startswith("best")
-        ]
-        if not ckpt_paths:
+        # Allow pointing directly at a .ckpt file (e.g. a downloaded checkpoint).
+        p = pathlib.Path(exp_dir)
+        if p.is_file() and p.suffix == ".ckpt":
+            print("Successfully loaded checkpoint from", p.name)
+            return p
+
+        all_ckpts = [c for c in p.iterdir() if c.suffix == ".ckpt"]
+        if not all_ckpts:
             raise FileNotFoundError(f"No checkpoint files in {exp_dir!r}")
 
-        def version(p: pathlib.Path) -> int:
+        # Prefer training-output checkpoints named "best*.ckpt"; otherwise fall
+        # back to any .ckpt in the dir (e.g. pretrained weights downloaded from
+        # the Hub, named cto_aapm.ckpt / cto_kits.ckpt).
+        best_ckpts = [c for c in all_ckpts if c.stem.startswith("best")]
+        ckpt_paths = best_ckpts if best_ckpts else all_ckpts
+
+        def version(c: pathlib.Path) -> int:
             # match "best-vN" or just "best"
-            m = re.fullmatch(r"best(?:-v(\d+))?", p.stem)
+            m = re.fullmatch(r"best(?:-v(\d+))?", c.stem)
             return int(m.group(1)) if m and m.group(1) else 0
 
         latest = max(ckpt_paths, key=version)

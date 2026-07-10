@@ -89,7 +89,7 @@ class VarnetLightningModule(pl.LightningModule):
         image = batch.image
         # sino, theta = radon(image, num_projections=self.cfg.model.num_projections)
         sino, theta = self.radon_transform.radon(image)
-        sampled_sino, sampled_theta, sampled_indices = self.sampler(sino, theta)
+        sampled_sino, sampled_theta, sampled_indices = self.val_sampler(sino, theta)
         sino_recon = self.sino_reconstructor(sampled_sino)
         # raw_image = iradon(sino_recon, sampled_theta)
         raw_image = self.radon_transform.iradon(sino_recon)

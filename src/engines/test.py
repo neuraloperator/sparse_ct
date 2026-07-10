@@ -166,6 +166,12 @@ class Test:
             if hasattr(model, "test_results"):
                 delattr(model, "test_results")
 
+            # Pin the test sampler to this single acceleration rate. Must be a
+            # 1-element list: the sampler does np.random.choice(self.accn_rate),
+            # so a bare int would sample a random rate from range(accn_rate).
+            model.test_sampler.accn_rate = [accn_rate]
+            print(f"\n[TEST] Running test with acceleration rate = {accn_rate}")
+
             trainer = pl.Trainer(accelerator="gpu", devices=1, logger=False)
             _ = trainer.test(model, datamodule=data_module)
 

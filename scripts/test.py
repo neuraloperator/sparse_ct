@@ -1,7 +1,9 @@
 import argparse
+import random
 import os
 from src.config import TestConfigurator
 import wandb
+import pandas as pd
 from pytorch_lightning import seed_everything
 
 if __name__ == '__main__':
@@ -33,4 +35,56 @@ if __name__ == '__main__':
         f.write(str(cc.cfg))
 
     exp, model, data_module = cc.init_all()
-    exp(model, data_module)
+    all_results = exp(model, data_module)
+
+    # ---- Log results to W&B as a table ----
+    cfg_logger = cc.cfg.get("logger")
+    wb_kwargs = {}
+    if cfg_logger is not None and isinstance(cfg_logger, dict) and len(cfg_logger) > 1:
+        wb_kwargs = {k: v for k, v in dict(cfg_logger).items() if k != "save_dir"}
+    # project = original project + _test  (e.g. "eccv" -> "eccv_test")
+    original_project = wb_kwargs.pop("project", None) or wb_kwargs.pop("name", cc.cfg.exp_name)
+    wb_kwargs["project"] = f"{original_project}_test"
+    wb_kwargs["name"] = f"{cc.cfg.exp_name}_test"
+    wb_kwargs["job_type"] = "test"
+    wb_kwargs["mode"] = "online"
+
+    run = wandb.init(**wb_kwargs)
+
+    # Build a DataFrame from results
+    rows = []
+    for rate in sorted(all_results.keys()):
+        r = all_results[rate]
+        rows.append({
+            "accn_rate": int(rate),
+            "psnr_mean": float(r.get("mean_psnr", 0)),
+            "psnr_std":  float(r.get("std_psnr", 0)),
+            "ssim_mean": float(r.get("mean_ssim", 0)),
+            "ssim_std":  float(r.get("std_ssim", 0)),
+            "rmse_mean": float(r.get("mean_rmse", 0)),
+            "rmse_std":  float(r.get("std_rmse", 0)),
+            "count":     int(r.get("count", 0)),
+        })
+    df = pd.DataFrame(rows)
+    # Re-seed from OS entropy before logging the table. seed_everything(42)
+    # above pins Python's random, which wandb uses to mint the table artifact's
+    # id; without this the id collides and the table never renders in the
+    # dashboard. Do NOT remove — this is a wandb-visibility fix, not sampling.
+    random.seed(None)
+    # Log table from DataFrame
+    table = wandb.Table(dataframe=df)
+    run.log({"test_results": table})
+
+    # Also log each rate's metrics as scalars (always visible in dashboard)
+    for _, row in df.iterrows():
+        rate = int(row["accn_rate"])
+        run.summary[f"rate_{rate}/psnr_mean"] = row["psnr_mean"]
+        run.summary[f"rate_{rate}/psnr_std"]  = row["psnr_std"]
+        run.summary[f"rate_{rate}/ssim_mean"] = row["ssim_mean"]
+        run.summary[f"rate_{rate}/ssim_std"]  = row["ssim_std"]
+        run.summary[f"rate_{rate}/rmse_mean"] = row["rmse_mean"]
+        run.summary[f"rate_{rate}/rmse_std"]  = row["rmse_std"]
+        run.summary[f"rate_{rate}/count"]     = row["count"]
+
+    run.finish()
+    print("W&B run finished — table is visible at:", run.url)

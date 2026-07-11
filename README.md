@@ -84,11 +84,11 @@ source ~/.bashrc
 cd PATH/TO/CTO_CVPR
 export PYTHONPATH="$(pwd)"
 export CUDA_VISIBLE_DEVICES=0,1,2,3 
-export WANDB_API_KEY=your_api_key
+export WANDB_API_KEY=your_api_key   # optional; only needed for wandb logging
 ```
-Also, set the number of GPUs being used in `configs/base.yaml`.
+Also, set the number of GPUs being used (`num_devices`) in `configs/base.yaml`.
 
-To train on the AAPM dataset, use the train.py script with the config file `configs/aapm.yaml`. To use wandb logging, update the logger section in the yaml file `configs/base.yaml`. Delete that header to not use any logging. By default, the trained model will get saved under `models/` directory.
+To train on the AAPM dataset, use the train.py script with the config file `configs/aapm.yaml`. Training logs to wandb by default using your logged-in account; set `export WANDB_ENTITY=<your-username>` to choose the entity, or `export WANDB_MODE=disabled` (or delete the `logger` header in `configs/base.yaml`) to turn logging off. By default, the trained model will get saved under the `models/` directory.
 
 ```
 python scripts/train.py -c configs/aapm.yaml

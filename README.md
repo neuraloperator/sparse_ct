@@ -10,7 +10,7 @@ conda activate cto_env
 make setup          # install python dependencies
 make torch-radon    # build torch-radon (needs a CUDA build environment: nvcc + toolkit)
 ```
-Tested with Python 3.11 on Linux. If `make torch-radon` fails to compile, build it by hand using the patch in `torch-radon_fix/` (clone https://github.com/matteo-ronchetti/torch-radon, apply `torch-radon_fix/torch-radon_fix.patch`, then `python setup.py install`).
+Tested with Python 3.11 on Linux. `make torch-radon` clones torch-radon, applies the required patch from `torch-radon_fix/` (it fixes out-of-date PyTorch calls and is always needed), and builds it. To do this by hand: clone https://github.com/matteo-ronchetti/torch-radon, apply `torch-radon_fix/torch-radon_fix.patch`, then run `python setup.py install`.
 
 ## 2. Data
 

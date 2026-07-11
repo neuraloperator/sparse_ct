@@ -25,6 +25,8 @@ pip install --no-build-isolation torch-harmonics
 ```
 The code was tested using a conda environment running Python 3.11 on a Linux computer.
 ### torch-radon
+`make torch-radon` runs the three steps below (clone, patch, build) in one go. It compiles CUDA kernels from source, so it needs a working CUDA build environment (`nvcc` + a toolkit matching your installed PyTorch). If it fails on your system, run the steps manually:
+
 - Download **torch-radon** from https://github.com/matteo-ronchetti/torch-radon
 ```
 git clone https://github.com/matteo-ronchetti/torch-radon.git

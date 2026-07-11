@@ -2,7 +2,7 @@
 
 All common tasks are wrapped as `make` targets. Run `make help` to list them. Every target is a thin wrapper around a `python ...` command if you prefer to run things directly.
 
-## Configuration
+## 1. Configuration
 
 Before running anything, review `configs/base.yaml` and update it for your setup. Common changes:
 - `use_wandb`: set to `false` to disable Weights & Biases logging for both train and test.
@@ -12,7 +12,7 @@ Before running anything, review `configs/base.yaml` and update it for your setup
 
 Dataset-specific settings (model, sampler, batch size, data paths) live in `configs/aapm.yaml` and `configs/kits.yaml`.
 
-## 1. Install
+## 2. Install
 
 ```
 conda create --name cto_env python=3.11
@@ -22,7 +22,7 @@ make torch-radon    # build torch-radon (needs a CUDA build environment: nvcc + 
 ```
 Tested with Python 3.11 on Linux. `make torch-radon` clones torch-radon, applies the required patch from `torch-radon_fix/`, and builds it.
 
-## 2. Data
+## 3. Data
 
 The Low-dose CT **AAPM** dataset is substantially smaller than the **C4KC-KiTS** dataset, hence easier to work with. Download the raw data first, then preprocess it:
 
@@ -36,7 +36,7 @@ make data-kits KITS_RAW_DIR=/path/to/C4KC-KiTS
 ```
 Preprocessed data is written to `data/aapm/` and `data/kits/` (matching the configs).
 
-## 3. Test the pretrained models
+## 4. Test the pretrained models
 
 Download our pretrained weights and test them (needs the corresponding preprocessed dataset from step 2):
 
@@ -47,7 +47,7 @@ make test-kits      # test the C4KC-KiTS model
 ```
 Metrics are printed and saved to `results/` as CSV + JSON. No Weights & Biases account is required.
 
-## 4. Train
+## 5. Train
 
 ```
 make train-aapm

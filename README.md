@@ -2,6 +2,15 @@
 
 All common tasks are wrapped as `make` targets. Run `make help` to list them. Every target is a thin wrapper around a `python ...` command if you prefer to run things directly.
 
+## Configuration
+
+Before running anything, review `configs/base.yaml` and update it for your setup. Common changes:
+- `logger.project` and `logger.entity`: your Weights & Biases project and account. Leave `entity` as `null` to use your logged-in default, or set `WANDB_ENTITY`. To skip W&B entirely, set `WANDB_MODE=disabled` (testing also supports `--no-wandb`).
+- `trainer.num_devices`: the number of GPUs to use.
+- `trainer.max_epochs` and `trainer.lr`: training hyperparameters.
+
+Dataset-specific settings (model, sampler, batch size, data paths) live in `configs/aapm.yaml` and `configs/kits.yaml`.
+
 ## 1. Install
 
 ```

@@ -19,6 +19,7 @@ The Low-dose CT **AAPM** dataset is substantially smaller than the **C4KC-KiTS**
 - **AAPM**: download from https://aapm.app.box.com/s/eaw4jddb53keg1bptavvvd1sf4x3pe9h/folder/144226105715, then unzip `FD_1mm.zip` to `full_1mm/`.
 - **C4KC-KiTS**: download from https://www.cancerimagingarchive.net/collection/c4kc-kits/.
 
+To preprocess the data, run:
 ```
 make data-aapm AAPM_RAW_DIR=/path/to/full_1mm
 make data-kits KITS_RAW_DIR=/path/to/C4KC-KiTS

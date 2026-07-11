@@ -1,5 +1,43 @@
 # Resolution-Independent Neural Operators for Multi-Rate Sparse-View CT
 
+## Datasets
+
+The Low-dose CT **AAPM** dataset is substantially smaller than the **C4KC-KiTS Dataset**, hence easier to work with.
+
+### AAPM Dataset
+- Download original **AAPM** dataset from https://aapm.app.box.com/s/eaw4jddb53keg1bptavvvd1sf4x3pe9h/folder/144226105715
+- Navigate to `Dataset_dir_to_downloaded_AAMP16/Patient_Data/Training_Image_Data/1mm B30`
+- Unzip the `FD_1mm.zip` to `full_1mm/`
+- Point the preprocessor at your raw download: either set `export AAPM_RAW_DIR=/path/to/full_1mm/` or edit `Line 5` of `src/data/preprocess_aapm.py`
+- Run the preprocessing (or `make data-aapm`). By default the processed data is saved at `data/aapm/` (matching `configs/aapm.yaml`)
+```
+python src/data/preprocess_aapm.py
+```
+### C4KC-KiTS Dataset
+- Download the **C4KC-KiTS** kidney CT dataset:  
+  https://www.cancerimagingarchive.net/collection/c4kc-kits/
+- Point the preprocessor at your raw download: either set `export KITS_RAW_DIR=/path/to/C4KC-KiTS` or edit `RAW_DICOM_DIR` at the top of `src/data/preprocess_kits.py` (and optionally `INTER_ORGANIZED_DIR`, the patient-wise intermediate dir)
+- Run the preprocessing (or `make data-kits`). By default the processed data is saved at `data/kits/` (matching `configs/kits.yaml`)
+```
+python src/data/preprocess_kits.py
+```
+
+## Quickstart
+
+Pretrained weights let you skip training, but you still need a dataset prepared (see Datasets above) to test on its test split. End to end, using the raw AAPM data:
+```bash
+make setup          # install python deps
+make torch-radon    # build torch-radon (needs a CUDA build env)
+export AAPM_RAW_DIR=/path/to/full_1mm/   # your downloaded AAPM data (see Datasets above)
+make data-aapm      # preprocess the raw AAPM data -> data/aapm/
+make weights        # download pretrained weights from Hugging Face -> ./weights
+make test-aapm      # test the pretrained AAPM model; metrics printed + saved to results/
+```
+
+`make help` lists every target (`setup`, `torch-radon`, `weights`, `data-aapm`/`data-kits`, `train-aapm`/`train-kits`, `test-aapm`/`test-kits`). Each is a thin wrapper over a `python ...` command, so you can run them directly too (shown in Running Experiments below).
+
+Testing writes CSV + JSON to `results/` and does not require a Weights & Biases account. The `test-*` targets pass `--no-wandb`. To enable W&B logging, drop `--no-wandb` and set `export WANDB_ENTITY=<your-username>` (or edit `configs/base.yaml`).
+
 ## Installation
 
 Create the conda environment, then use the `make` targets to install everything:
@@ -37,42 +75,6 @@ python setup.py install
 <!-- ### neuraloperator
 - Install the **neuraloperator** library by following the instructions given at
   https://github.com/neuraloperator/neuraloperator -->
-
-## Datasets
-
-The Low-dose CT **AAPM** dataset is substantially smaller than the **C4KC-KiTS Dataset**, hence easier to work with.
-
-### AAPM Dataset
-- Download original **AAPM** dataset from https://aapm.app.box.com/s/eaw4jddb53keg1bptavvvd1sf4x3pe9h/folder/144226105715
-- Navigate to `Dataset_dir_to_downloaded_AAMP16/Patient_Data/Training_Image_Data/1mm B30`
-- Unzip the `FD_1mm.zip` to `full_1mm/`
-- Point the preprocessor at your raw download: either set `export AAPM_RAW_DIR=/path/to/full_1mm/` or edit `Line 5` of `src/data/preprocess_aapm.py`
-- Run the preprocessing (or `make data-aapm`). By default the processed data is saved at `data/aapm/` (matching `configs/aapm.yaml`)
-```
-python src/data/preprocess_aapm.py
-```
-### C4KC-KiTS Dataset
-- Download the **C4KC-KiTS** kidney CT dataset:  
-  https://www.cancerimagingarchive.net/collection/c4kc-kits/
-- Point the preprocessor at your raw download: either set `export KITS_RAW_DIR=/path/to/C4KC-KiTS` or edit `RAW_DICOM_DIR` at the top of `src/data/preprocess_kits.py` (and optionally `INTER_ORGANIZED_DIR`, the patient-wise intermediate dir)
-- Run the preprocessing (or `make data-kits`). By default the processed data is saved at `data/kits/` (matching `configs/kits.yaml`)
-```
-python src/data/preprocess_kits.py
-```
-
-## Quickstart
-
-Pretrained weights let you skip training, but you still need a dataset prepared (see Installation and Datasets above) to test on its test split. With the environment installed and the raw AAPM data downloaded, the full path is:
-```bash
-export AAPM_RAW_DIR=/path/to/full_1mm/
-make data-aapm      # preprocess the raw AAPM data -> data/aapm/
-make weights        # download pretrained weights from Hugging Face -> ./weights
-make test-aapm      # test the pretrained AAPM model; metrics printed + saved to results/
-```
-
-`make help` lists every target (`setup`, `torch-radon`, `weights`, `data-aapm`/`data-kits`, `train-aapm`/`train-kits`, `test-aapm`/`test-kits`). Each is a thin wrapper over a `python ...` command, so you can run them directly too (shown in Running Experiments below).
-
-Testing writes CSV + JSON to `results/` and does not require a Weights & Biases account. The `test-*` targets pass `--no-wandb`. To enable W&B logging, drop `--no-wandb` and set `export WANDB_ENTITY=<your-username>` (or edit `configs/base.yaml`).
 
 ## Running Experiments
 

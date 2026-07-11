@@ -1,5 +1,5 @@
 .vscode/
-data/
-models/
-results/
-wandb/
+/data/
+/models/
+/results/
+/wandb/

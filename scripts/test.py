@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # The engine already wrote CSV + JSON to results/, so W&B is purely optional.
     # Skipped cleanly on --no-wandb, WANDB_MODE=disabled, or any wandb error
     # (e.g. not logged in) so a reviewer can run test with zero wandb setup.
-    if args.no_wandb or os.environ.get("WANDB_MODE", "").lower() == "disabled":
+    if args.no_wandb or not cc.cfg.get("use_wandb", True) or os.environ.get("WANDB_MODE", "").lower() == "disabled":
         print("[TEST] W&B logging skipped. Metrics saved to results/ (CSV + JSON).")
     else:
         try:

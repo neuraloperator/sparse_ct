@@ -5,7 +5,8 @@ All common tasks are wrapped as `make` targets. Run `make help` to list them. Ev
 ## Configuration
 
 Before running anything, review `configs/base.yaml` and update it for your setup. Common changes:
-- `logger.project` and `logger.entity`: your Weights & Biases project and account. Leave `entity` as `null` to use your logged-in default, or set `WANDB_ENTITY`. To skip W&B entirely, set `WANDB_MODE=disabled` (testing also supports `--no-wandb`).
+- `use_wandb`: set to `false` to disable Weights & Biases logging for both train and test.
+- `logger.project` and `logger.entity`: your Weights & Biases project and account. Leave `entity` as `null` to use your logged-in default, or set `WANDB_ENTITY`.
 - `trainer.num_devices`: the number of GPUs to use.
 - `trainer.max_epochs` and `trainer.lr`: training hyperparameters.
 
@@ -52,7 +53,7 @@ Metrics are printed and saved to `results/` as CSV + JSON. No Weights & Biases a
 make train-aapm
 make train-kits
 ```
-Trained models are saved under `models/`. Training logs to Weights & Biases by default; set `WANDB_ENTITY=<your-username>` to choose the entity, or `WANDB_MODE=disabled` to turn logging off.
+Trained models are saved under `models/`. Training logs to Weights & Biases by default; set `WANDB_ENTITY=<your-username>` to choose the entity, or set `use_wandb: false` in `configs/base.yaml` to turn logging off.
 
 ## Notes
 

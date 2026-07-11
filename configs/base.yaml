@@ -1,4 +1,5 @@
 exp_name: equispaced_sparse_ct
+use_wandb: true   # set to false to disable Weights & Biases logging for train and test
 trainer:
   max_epochs: 50
   lr: 0.001

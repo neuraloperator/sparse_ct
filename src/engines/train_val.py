@@ -54,7 +54,9 @@ class TrainVal:
         additional_callbacks = []
         cfg_logger = self.cfg.get("logger")
 
-        if cfg_logger is None:
+        if not self.cfg.get("use_wandb", True):
+            logger = None
+        elif cfg_logger is None:
             logger = None
         elif isinstance(cfg_logger, dict) and len(cfg_logger) <= 1:
             logger = None

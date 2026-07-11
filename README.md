@@ -2,7 +2,7 @@
 
 ## Quickstart
 
-To reproduce our numbers on the pretrained models you don't need the datasets — download the weights and run test:
+To run the pretrained models you do not need the datasets. Download the weights and run test:
 
 ```bash
 make setup          # install python deps (see the torch-radon note below)
@@ -13,7 +13,7 @@ make test-kits      # test the C4KC-KiTS model
 
 `make help` lists every target (`setup`, `weights`, `data-aapm`/`data-kits`, `train-aapm`/`train-kits`, `test-aapm`/`test-kits`). Each is a thin wrapper over a `python ...` command, so you can run them directly too (shown in the sections below).
 
-Testing writes CSV + JSON to `results/` and needs **no Weights & Biases account** — the `test-*` targets pass `--no-wandb`. To enable W&B logging, drop `--no-wandb` and set `export WANDB_ENTITY=<your-username>` (or edit `configs/base.yaml`).
+Testing writes CSV + JSON to `results/` and does not require a Weights & Biases account. The `test-*` targets pass `--no-wandb`. To enable W&B logging, drop `--no-wandb` and set `export WANDB_ENTITY=<your-username>` (or edit `configs/base.yaml`).
 
 ## Installation
 - Install required python packages using the following command
@@ -99,7 +99,7 @@ Similarly, to test the trained model, run the command below. Results are printed
 python scripts/test.py -c configs/aapm.yaml
 ```
 
-To test the **pretrained** weights instead of a locally trained model, download them and point `init_exp_dir` at the checkpoint folder (this is what `make test-aapm` runs):
+To test the pretrained weights instead of a locally trained model, download them and point `init_exp_dir` at the checkpoint folder (this is what `make test-aapm` runs):
 ```
 python download_weights.py
 python scripts/test.py -c configs/aapm.yaml --fix init_exp_dir weights/aapm --no-wandb

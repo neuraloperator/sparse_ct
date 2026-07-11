@@ -2,16 +2,19 @@
 
 ## Quickstart
 
-To run the pretrained models you do not need the datasets. Download the weights and run test:
+Pretrained weights let you skip training, but you still need the dataset prepared to test on its test split. Full path:
 
 ```bash
 make setup          # install python deps (see the torch-radon note below)
+make torch-radon    # build torch-radon (needs a CUDA build env)
+# download and preprocess a dataset (see Datasets below); e.g. for AAPM:
+export AAPM_RAW_DIR=/path/to/full_1mm/
+make data-aapm      # writes the preprocessed data to data/aapm/
 make weights        # download pretrained weights from Hugging Face -> ./weights
-make test-aapm      # test the AAPM model; metrics printed + saved to results/
-make test-kits      # test the C4KC-KiTS model
+make test-aapm      # test the pretrained AAPM model; metrics printed + saved to results/
 ```
 
-`make help` lists every target (`setup`, `weights`, `data-aapm`/`data-kits`, `train-aapm`/`train-kits`, `test-aapm`/`test-kits`). Each is a thin wrapper over a `python ...` command, so you can run them directly too (shown in the sections below).
+`make help` lists every target (`setup`, `torch-radon`, `weights`, `data-aapm`/`data-kits`, `train-aapm`/`train-kits`, `test-aapm`/`test-kits`). Each is a thin wrapper over a `python ...` command, so you can run them directly too (shown in the sections below).
 
 Testing writes CSV + JSON to `results/` and does not require a Weights & Biases account. The `test-*` targets pass `--no-wandb`. To enable W&B logging, drop `--no-wandb` and set `export WANDB_ENTITY=<your-username>` (or edit `configs/base.yaml`).
 

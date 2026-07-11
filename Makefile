@@ -26,11 +26,11 @@ torch-radon:  ## Clone, patch, and build torch-radon (needs a CUDA build env: nv
 weights:  ## Download pretrained weights from Hugging Face into ./weights
 	$(PYTHON) download_weights.py
 
-data-aapm:  ## Preprocess AAPM (set AAPM_RAW_DIR to your raw download) -> data/aapm
-	$(PYTHON) src/data/preprocess_aapm.py
+data-aapm:  ## Preprocess AAPM (pass AAPM_RAW_DIR=/path/to/full_1mm) -> data/aapm
+	$(if $(AAPM_RAW_DIR),AAPM_RAW_DIR="$(AAPM_RAW_DIR)" )$(PYTHON) src/data/preprocess_aapm.py
 
-data-kits:  ## Preprocess C4KC-KiTS (set KITS_RAW_DIR to your raw download) -> data/kits
-	$(PYTHON) src/data/preprocess_kits.py
+data-kits:  ## Preprocess C4KC-KiTS (pass KITS_RAW_DIR=/path/to/C4KC-KiTS) -> data/kits
+	$(if $(KITS_RAW_DIR),KITS_RAW_DIR="$(KITS_RAW_DIR)" )$(PYTHON) src/data/preprocess_kits.py
 
 train-aapm:  ## Train on AAPM
 	$(PYTHON) scripts/train.py -c configs/aapm.yaml

@@ -20,7 +20,12 @@ setup:  ## Install Python deps (then run `make torch-radon` separately)
 
 torch-radon:  ## Clone, patch, and build torch-radon (needs a CUDA build env: nvcc + toolkit)
 	@test -d $(TORCH_RADON_DIR) || git clone $(TORCH_RADON_REPO) $(TORCH_RADON_DIR)
-	cd $(TORCH_RADON_DIR) && patch -p1 --forward < $(CURDIR)/torch-radon_fix/torch-radon_fix.patch || true
+	cd $(TORCH_RADON_DIR) && \
+		if patch -p1 -R --dry-run -f < $(CURDIR)/torch-radon_fix/torch-radon_fix.patch >/dev/null 2>&1; then \
+			echo "torch-radon patch already applied, skipping"; \
+		else \
+			patch -p1 < $(CURDIR)/torch-radon_fix/torch-radon_fix.patch; \
+		fi
 	cd $(TORCH_RADON_DIR) && $(PYTHON) setup.py install
 
 weights:  ## Download pretrained weights from Hugging Face into ./weights

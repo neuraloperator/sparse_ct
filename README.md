@@ -1,5 +1,20 @@
 # Resolution-Independent Neural Operators for Multi-Rate Sparse-View CT
 
+## Quickstart
+
+To reproduce our numbers on the pretrained models you don't need the datasets — download the weights and run test:
+
+```bash
+make setup          # install python deps (see the torch-radon note below)
+make weights        # download pretrained weights from Hugging Face -> ./weights
+make test-aapm      # test the AAPM model; metrics printed + saved to results/
+make test-kits      # test the C4KC-KiTS model
+```
+
+`make help` lists every target (`setup`, `weights`, `data-aapm`/`data-kits`, `train-aapm`/`train-kits`, `test-aapm`/`test-kits`). Each is a thin wrapper over a `python ...` command, so you can run them directly too (shown in the sections below).
+
+Testing writes CSV + JSON to `results/` and needs **no Weights & Biases account** — the `test-*` targets pass `--no-wandb`. To enable W&B logging, drop `--no-wandb` and set `export WANDB_ENTITY=<your-username>` (or edit `configs/base.yaml`).
+
 ## Installation
 - Install required python packages using the following command
 ```
@@ -36,16 +51,16 @@ The Low-dose CT **AAPM** dataset is substantially smaller than the **C4KC-KiTS D
 - Download original **AAPM** dataset from https://aapm.app.box.com/s/eaw4jddb53keg1bptavvvd1sf4x3pe9h/folder/144226105715
 - Navigate to `Dataset_dir_to_downloaded_AAMP16/Patient_Data/Training_Image_Data/1mm B30`
 - Unzip the `FD_1mm.zip` to `full_1mm/`
-- Update `Line 5` at the top of `cto_cvpr/src/data/preprocess_aapm.py` with the updated dataset path
-- Run the preprocessing with the following command. By default, the processed data will be saved at `cto_cvpr/data/aapm16`
+- Point the preprocessor at your raw download: either set `export AAPM_RAW_DIR=/path/to/full_1mm/` or edit `Line 5` of `src/data/preprocess_aapm.py`
+- Run the preprocessing (or `make data-aapm`). By default the processed data is saved at `data/aapm/` (matching `configs/aapm.yaml`)
 ```
 python src/data/preprocess_aapm.py
 ```
 ### C4KC-KiTS Dataset
 - Download the **C4KC-KiTS** kidney CT dataset:  
   https://www.cancerimagingarchive.net/collection/c4kc-kits/
-- Update `Lines 21-22` at the top of `cto_cvpr/src/data/preprocess_aapm.py` with the original dataset path `RAW_DICOM_DIR` and the desired intermediate dataset path `INTER_ORGANIZED_DIR` where data will be stored patient wise. 
-- Run the preprocessing with the following command. By default, the processed data will be saved at `cto_cvpr/data/kits`
+- Point the preprocessor at your raw download: either set `export KITS_RAW_DIR=/path/to/C4KC-KiTS` or edit `RAW_DICOM_DIR` at the top of `src/data/preprocess_kits.py` (and optionally `INTER_ORGANIZED_DIR`, the patient-wise intermediate dir)
+- Run the preprocessing (or `make data-kits`). By default the processed data is saved at `data/kits/` (matching `configs/kits.yaml`)
 ```
 python src/data/preprocess_kits.py
 ```
@@ -77,9 +92,15 @@ To train on the AAPM dataset, use the train.py script with the config file `conf
 python scripts/train.py -c configs/aapm.yaml
 ```
 
-Similarly, to test the trained model, you can run the following command. Results are printed and saved in the `results/` directory.
+Similarly, to test the trained model, run the command below. Results are printed and saved (CSV + JSON) in the `results/` directory. Add `--no-wandb` to skip Weights & Biases entirely (metrics are still saved locally).
 ```
 python scripts/test.py -c configs/aapm.yaml
+```
+
+To test the **pretrained** weights instead of a locally trained model, download them and point `init_exp_dir` at the checkpoint folder (this is what `make test-aapm` runs):
+```
+python download_weights.py
+python scripts/test.py -c configs/aapm.yaml --fix init_exp_dir weights/aapm --no-wandb
 ```
 
 To train and test on the C4KC-KiTS dataset, follow the same steps detailed above with the config file `configs/kits.yaml`.

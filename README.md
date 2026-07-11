@@ -1,34 +1,24 @@
 # Resolution-Independent Neural Operators for Multi-Rate Sparse-View CT
 
-## Quickstart
-
-Pretrained weights let you skip training, but you still need the dataset prepared to test on its test split. Full path:
-
-```bash
-make setup          # install python deps (see the torch-radon note below)
-make torch-radon    # build torch-radon (needs a CUDA build env)
-# download and preprocess a dataset (see Datasets below); e.g. for AAPM:
-export AAPM_RAW_DIR=/path/to/full_1mm/
-make data-aapm      # writes the preprocessed data to data/aapm/
-make weights        # download pretrained weights from Hugging Face -> ./weights
-make test-aapm      # test the pretrained AAPM model; metrics printed + saved to results/
-```
-
-`make help` lists every target (`setup`, `torch-radon`, `weights`, `data-aapm`/`data-kits`, `train-aapm`/`train-kits`, `test-aapm`/`test-kits`). Each is a thin wrapper over a `python ...` command, so you can run them directly too (shown in the sections below).
-
-Testing writes CSV + JSON to `results/` and does not require a Weights & Biases account. The `test-*` targets pass `--no-wandb`. To enable W&B logging, drop `--no-wandb` and set `export WANDB_ENTITY=<your-username>` (or edit `configs/base.yaml`).
-
 ## Installation
-- Install required python packages using the following command
+
+Create the conda environment, then use the `make` targets to install everything:
 ```
 conda create --name cto_env python=3.11
 conda activate cto_env
+make setup          # installs the Python dependencies (requirements.txt + torch-harmonics)
+make torch-radon    # clones, patches, and builds torch-radon (needs a CUDA build env)
+```
+The code was tested using a conda environment running Python 3.11 on a Linux computer.
+
+`make setup` runs the following commands, which you can also run by hand:
+```
 python -m pip install -r requirements.txt
 pip install --no-build-isolation torch-harmonics
 ```
-The code was tested using a conda environment running Python 3.11 on a Linux computer.
+
 ### torch-radon
-`make torch-radon` runs the three steps below (clone, patch, build) in one go. It compiles CUDA kernels from source, so it needs a working CUDA build environment (`nvcc` + a toolkit matching your installed PyTorch). If it fails on your system, run the steps manually:
+`make torch-radon` runs the three steps below (clone, patch, build). It compiles CUDA kernels from source, so it needs a working CUDA build environment (`nvcc` + a toolkit matching your installed PyTorch). If it fails on your system, run the steps manually:
 
 - Download **torch-radon** from https://github.com/matteo-ronchetti/torch-radon
 ```
@@ -69,14 +59,20 @@ python src/data/preprocess_aapm.py
 ```
 python src/data/preprocess_kits.py
 ```
-<!-- ## Preprocessing
 
-Run the preprocessing scripts after downloading the datasets:
+## Quickstart
 
+Pretrained weights let you skip training, but you still need a dataset prepared (see Installation and Datasets above) to test on its test split. With the environment installed and the raw AAPM data downloaded, the full path is:
+```bash
+export AAPM_RAW_DIR=/path/to/full_1mm/
+make data-aapm      # preprocess the raw AAPM data -> data/aapm/
+make weights        # download pretrained weights from Hugging Face -> ./weights
+make test-aapm      # test the pretrained AAPM model; metrics printed + saved to results/
 ```
-python src/data/aapm.py
-python src/data/kits.py
-``` -->
+
+`make help` lists every target (`setup`, `torch-radon`, `weights`, `data-aapm`/`data-kits`, `train-aapm`/`train-kits`, `test-aapm`/`test-kits`). Each is a thin wrapper over a `python ...` command, so you can run them directly too (shown in Running Experiments below).
+
+Testing writes CSV + JSON to `results/` and does not require a Weights & Biases account. The `test-*` targets pass `--no-wandb`. To enable W&B logging, drop `--no-wandb` and set `export WANDB_ENTITY=<your-username>` (or edit `configs/base.yaml`).
 
 ## Running Experiments
 

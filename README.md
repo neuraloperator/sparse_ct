@@ -1,4 +1,4 @@
-# Resolution-Agnostic Neural Operators for Multi-Rate Sparse-View CT (CTO)<br><sub>ECCV 2026</sub>
+# Resolution-Agnostic Neural Operators for Multi-Rate Sparse-View CT<br><sub>ECCV 2026</sub>
 
 ![Teaser image](./docs/teaser.png)
 

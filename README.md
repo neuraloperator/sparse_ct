@@ -66,8 +66,4 @@ make train-kits
 ```
 Trained models are saved under `models/`. Training logs to Weights & Biases by default; set `WANDB_ENTITY=<your-username>` to choose the entity, or set `use_wandb: false` in `configs/base.yaml` to turn logging off.
 
-## Notes
-
-- `make help` lists every target.
-- Set the number of GPUs (`num_devices`) in `configs/base.yaml`.
-- Testing loads a checkpoint from a folder via `--fix init_exp_dir <dir>` (this is what the `test-*` targets do with `weights/`); to test your own trained model instead, drop that flag so it reads from the config's `exp_dir` under `models/`.
+To test a model you trained yourself instead of the pretrained weights, run `python scripts/test.py -c configs/aapm.yaml` without `--fix init_exp_dir`, so it reads the checkpoint from the config's `exp_dir` under `models/`.

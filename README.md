@@ -10,7 +10,7 @@ Aujasvit Datta*, Jiayun Wang*, Asad Aali, Anima Anandkumar
 
 ![CTO architecture](./docs/architecture.png)
 
-All common tasks are wrapped as `make` targets. Run `make help` to list them. Every target is a thin wrapper around a `python ...` command if you prefer to run things directly.
+All common tasks are wrapped as `make` targets. Run `make help` to list them. Every target is a wrapper around a `python ...` command. 
 
 ## 1. Configuration
 
@@ -20,7 +20,7 @@ Before running anything, review `configs/base.yaml` and update it for your setup
 - `trainer.num_devices`: the number of GPUs to use.
 - `trainer.max_epochs` and `trainer.lr`: training hyperparameters.
 
-Dataset-specific settings (model, sampler, batch size, data paths) live in `configs/aapm.yaml` and `configs/kits.yaml`.
+Dataset-specific settings (model, sampler, batch size, data paths) are in `configs/aapm.yaml` and `configs/kits.yaml`.
 
 ## 2. Install
 
@@ -34,7 +34,7 @@ Tested with Python 3.11 on Linux. `make torch-radon` clones torch-radon, applies
 
 ## 3. Data
 
-The Low-dose CT **AAPM** dataset is substantially smaller than the **C4KC-KiTS** dataset, hence easier to work with. Download the raw data first, then preprocess it:
+The Low-dose CT **AAPM** dataset is substantially smaller than the **C4KC-KiTS** dataset, hence easier to work with.
 
 - **AAPM**: download from https://aapm.app.box.com/s/eaw4jddb53keg1bptavvvd1sf4x3pe9h/folder/144226105715, then unzip `FD_1mm.zip` to `full_1mm/`.
 - **C4KC-KiTS**: download from https://www.cancerimagingarchive.net/collection/c4kc-kits/.
@@ -44,7 +44,7 @@ To preprocess the data, run:
 make data-aapm AAPM_RAW_DIR=/path/to/full_1mm
 make data-kits KITS_RAW_DIR=/path/to/C4KC-KiTS
 ```
-Preprocessed data is written to `data/aapm/` and `data/kits/` (matching the configs).
+Preprocessed data is written to `data/aapm/` and `data/kits/`, matching the the paths given in the configs.
 
 ## 4. Test the pretrained models
 
@@ -55,10 +55,11 @@ make weights        # download pretrained weights from Hugging Face -> ./weights
 make test-aapm      # test the AAPM model
 make test-kits      # test the C4KC-KiTS model
 ```
-Metrics are printed and saved to `results/` as CSV + JSON. No Weights & Biases account is required.
+Metrics are printed and saved to `results/` as CSV + JSON.
 
 ## 5. Train a model
 
+To train your own model, use the following commands:
 ```
 make train-aapm
 make train-kits
